@@ -5,21 +5,43 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
     <style>
-
+        body {
+            width: 300px;
+        }
     </style>
 </head>
 <body>
+    <div class="header">
+        <h2>Meet Subtitles Translator</h2>
+    </div>
+    
     <div class="content">
-        <h2>Subs translator</h2>
-        <div class="turner">
-            <div class="turner_item">
-                <p>Turn on/off the translator</p>
-                <button id="turner">Turn on</button>
+        <div class="control-section">
+            <p>Включить/выключить переводчик</p>
+            <button id="toggleBtn" class="toggle-btn disabled">Turn On</button>
+        </div>
+        
+        <div class="warning" id="warningMessage" style="display: none;">
+            Убедитесь, что включены субтитры в Google Meet
+        </div>
+        
+        <div class="subtitles-section">
+            <div class="subtitles-header">
+                <h3>Субтитры</h3>
+                <div style="display: flex; align-items: center;">
+                    <div class="status-indicator" id="statusIndicator" style="display: none;"></div>
+                    <button class="refresh-btn" id="refreshBtn">⟳</button>
+                </div>
+            </div>
+            
+            <div class="subtitles-content" id="subtitlesContent">
+                <div class="no-subtitles">
+                    Субтитры появятся здесь, когда вы включите расширение
+                </div>
             </div>
         </div>
-        <div class="subs_content">
-            <p>Subtitle content goes here...</p>
-        </div>
     </div>
+    
+    <script src="../js/popup.js"></script>
 </body>
 </html>

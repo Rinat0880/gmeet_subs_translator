@@ -2,18 +2,28 @@
   "manifest_version": 3,
   "name": "Meet Subtitles Translator",
   "version": "1.0",
-  "permissions": ["scripting", "activeTab"],
-  "host_permissions": ["https://meet.google.com/*"],
+  "description": "Translate Google Meet subtitles in real-time",
+  "permissions": [
+    "scripting",
+    "activeTab",
+    "storage"
+  ],
+  "host_permissions": [
+    "https://meet.google.com/*",
+    "https://api-free.deepl.com/*"
+  ],
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "js/background.js"
   },
   "content_scripts": [
     {
       "matches": ["https://meet.google.com/*"],
-      "js": ["content.js"]
+      "js": ["js/content.js"],
+      "run_at": "document_end"
     }
   ],
   "action": {
-    "default_popup": "popup.html"
+    "default_popup": "html/popup.html",
+    "default_title": "Meet Subtitles Translator"
   }
 }
