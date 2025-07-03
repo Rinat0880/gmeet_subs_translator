@@ -62,8 +62,6 @@ function displaySubtitles(subtitles) {
     }
     
     const subtitlesHtml = subtitles.map(subtitle => {
-        const time = new Date(subtitle.timestamp).toLocaleTimeString();
-        
         return `
             <div class="subtitle-item">
                 <div class="subtitle-original">

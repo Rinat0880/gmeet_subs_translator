@@ -72,31 +72,31 @@ function findAndWatchSubtitles() {
         }
     }
     
-    // if (!subtitleContainer) {
-    //     const ariaLiveElements = document.querySelectorAll('[aria-live="polite"]');
-    //     for (const element of ariaLiveElements) {
-    //         if (element.textContent.trim()) {
-    //             subtitleContainer = element;
-    //             console.log('Found subtitle container by aria-live');
-    //             break;
-    //         }
-    //     }
-    // }
+    if (!subtitleContainer) {
+        const ariaLiveElements = document.querySelectorAll('[aria-live="polite"]');
+        for (const element of ariaLiveElements) {
+            if (element.textContent.trim()) {
+                subtitleContainer = element;
+                console.log('Found subtitle container by aria-live');
+                break;
+            }
+        }
+    }
     
-    // if (!subtitleContainer) {
-    //     const possibleParents = document.querySelectorAll('div[jsname]');
-    //     for (const parent of possibleParents) {
-    //         const textElements = parent.querySelectorAll('div, span, p');
-    //         for (const textEl of textElements) {
-    //             if (textEl.textContent.trim().length > 10) {
-    //                 subtitleContainer = parent;
-    //                 console.log('Found subtitle container by parent');
-    //                 break;
-    //             }
-    //         }
-    //         if (subtitleContainer) break;
-    //     }
-    // }
+    if (!subtitleContainer) {
+        const possibleParents = document.querySelectorAll('div[jsname]');
+        for (const parent of possibleParents) {
+            const textElements = parent.querySelectorAll('div, span, p');
+            for (const textEl of textElements) {
+                if (textEl.textContent.trim().length > 10) {
+                    subtitleContainer = parent;
+                    console.log('Found subtitle container by parent');
+                    break;
+                }
+            }
+            if (subtitleContainer) break;
+        }
+    }
     
     if (subtitleContainer) {
         watchSubtitleContainer(subtitleContainer);
