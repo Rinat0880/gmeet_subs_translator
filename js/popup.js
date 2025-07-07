@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     await checkExtensionStatus();
     await loadSubtitles();
     
-    subtitlesInterval = setInterval(loadSubtitles, 1000);
+    subtitlesInterval = setInterval(loadSubtitles, 3000);
 });
 
 async function checkExtensionStatus() {

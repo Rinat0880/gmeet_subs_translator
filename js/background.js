@@ -1,6 +1,37 @@
 let currentSubtitle = null; 
 let isEnabled = false;
 
+async function sendToDeepL(text) {
+    try {
+        const tabs = await chrome.tabs.query({});
+        const deepLTab = tabs.find(tab => tab.url && tab.url.includes('deepl.com'));
+        
+        if (deepLTab) {
+            await chrome.tabs.sendMessage(deepLTab.id, {
+                action: 'translateText',
+                text: text
+            });
+        } else {
+            const newTab = await chrome.tabs.create({
+                url: 'https://www.deepl.com/translator'
+            });
+            
+            setTimeout(async () => {
+                try {
+                    await chrome.tabs.sendMessage(newTab.id, {
+                        action: 'translateText',
+                        text: text
+                    });
+                } catch (error) {
+                    console.error('Error sending to DeepL:', error);
+                }
+            }, 3000);
+        }
+    } catch (error) {
+        console.error('Error in sendToDeepL:', error);
+    }
+}
+
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === 'toggleExtension') {
         isEnabled = !isEnabled;
@@ -20,6 +51,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             text: request.text,
             timestamp: request.timestamp
         };
+        
+        if (isEnabled) {
+            sendToDeepL(request.text);
+        }
     }
     
     else if (request.action === 'getSubtitles') {
