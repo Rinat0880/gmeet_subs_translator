@@ -26,6 +26,27 @@ if (isMeetPage) {
             
             sendResponse({status: isExtensionEnabled ? 'enabled' : 'disabled'});
         }
+        
+        // Новый обработчик для проверки доступности субтитров
+        else if (request.action === 'checkSubtitles') {
+            const subtitleSelectors = [
+                '[class="ygicle VbkSUe"]',
+                '[aria-live="polite"]'
+            ];
+            
+            let subtitlesFound = false;
+            
+            for (const selector of subtitleSelectors) {
+                const element = document.querySelector(selector);
+                if (element) {
+                    subtitlesFound = true;
+                    break;
+                }
+            }
+            
+            sendResponse({available: subtitlesFound});
+        }
+        
         return true;
     });
 
