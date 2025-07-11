@@ -3,10 +3,10 @@ let subtitlesInterval = null;
 
 const toggleBtn = document.getElementById('toggleBtn');
 const subtitlesContent = document.getElementById('subtitlesContent');
-const statusIndicator = document.getElementById('statusIndicator');
-const warningMessage = document.getElementById('warningMessage');
+let statusIndicator; 
 
 document.addEventListener('DOMContentLoaded', async () => {
+    statusIndicator = document.getElementById('statusIndicator');
     await checkExtensionStatus();
     await loadSubtitles();
     
@@ -28,12 +28,10 @@ function updateButtonState() {
         toggleBtn.textContent = 'Turn Off';
         toggleBtn.className = 'toggle-btn enabled';
         statusIndicator.style.display = 'block';
-        warningMessage.style.display = 'block';
     } else {
         toggleBtn.textContent = 'Turn On';
         toggleBtn.className = 'toggle-btn disabled';
         statusIndicator.style.display = 'none';
-        warningMessage.style.display = 'none';
     }
 }
 
