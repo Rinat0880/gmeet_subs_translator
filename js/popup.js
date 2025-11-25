@@ -1,98 +1,124 @@
-let isEnabled = false;
-let subtitlesInterval = null;
-
-const toggleBtn = document.getElementById('toggleBtn');
-const subtitlesContent = document.getElementById('subtitlesContent');
-let statusIndicator; 
-
-document.addEventListener('DOMContentLoaded', async () => {
-    statusIndicator = document.getElementById('statusIndicator');
-    await checkExtensionStatus();
-    await loadSubtitles();
+(function() {
+    'use strict';
     
-    subtitlesInterval = setInterval(loadSubtitles, 3000);
-});
-
-async function checkExtensionStatus() {
-    try {
-        const response = await chrome.runtime.sendMessage({action: 'getStatus'});
-        isEnabled = response.status === 'enabled';
-        updateButtonState();
-    } catch (error) {
-        console.error('Error checking status:', error);
+    let toggleBtn, subtitlesContent, statusIndicator;
+    let isEnabled = false;
+    let isMeetTab = false;
+    let refreshInterval = null;
+    
+    function initElements() {
+        toggleBtn = document.getElementById('toggleBtn');
+        subtitlesContent = document.getElementById('subtitlesContent');
+        statusIndicator = document.getElementById('statusIndicator');
+        return toggleBtn && subtitlesContent && statusIndicator;
     }
-}
-
-function updateButtonState() {
-    if (isEnabled) {
-        toggleBtn.textContent = 'Turn Off';
-        toggleBtn.className = 'toggle-btn enabled';
-        statusIndicator.style.display = 'block';
-    } else {
-        toggleBtn.textContent = 'Turn On';
-        toggleBtn.className = 'toggle-btn disabled';
-        statusIndicator.style.display = 'none';
-    }
-}
-
-async function loadSubtitles() {
-    try {
-        const response = await chrome.runtime.sendMessage({action: 'getSubtitles'});
-        
-        if (response && response.subtitles) {
-            displaySubtitles(response.subtitles);
+    
+    async function getStatus() {
+        try {
+            const response = await chrome.runtime.sendMessage({ action: 'getStatus' });
+            if (response) {
+                isEnabled = response.status === 'enabled';
+                isMeetTab = response.isMeetTab || false;
+            }
+        } catch (e) {
+            console.error('Error:', e);
         }
-    } catch (error) {
-        console.error('Error loading subtitles:', error);
-    }
-}
-
-function displaySubtitles(subtitles) {
-    if (!subtitles || subtitles.length === 0) {
-        subtitlesContent.innerHTML = `
-            <div class="no-subtitles">
-                ${isEnabled ? 'Ожидание субтитров...' : 'Субтитры появятся здесь, когда вы включите расширение'}
-            </div>
-        `;
-        return;
     }
     
-    const subtitlesHtml = subtitles.map(subtitle => {
-        return `
-            <div class="subtitle-item">
-                <div class="subtitle-original">
-                    ${escapeHtml(subtitle.text)}
-                </div>
-            </div>
-        `;
-    }).join('');
-    
-    subtitlesContent.innerHTML = subtitlesHtml;
-    subtitlesContent.scrollTop = subtitlesContent.scrollHeight;
-}
-
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
-
-toggleBtn.addEventListener('click', async () => {
-    try {
-        const response = await chrome.runtime.sendMessage({action: 'toggleExtension'});
+    function updateUI() {
+        toggleBtn.classList.remove('enabled', 'disabled', 'inactive');
         
-        if (response) {
-            isEnabled = response.status === 'enabled';
-            updateButtonState();
-            await loadSubtitles();
+        if (!isMeetTab) {
+            toggleBtn.textContent = 'Откройте Google Meet';
+            toggleBtn.classList.add('inactive');
+            toggleBtn.disabled = true;
+            statusIndicator.classList.remove('on');
+        } else if (isEnabled) {
+            toggleBtn.textContent = 'Выключить';
+            toggleBtn.classList.add('enabled');
+            toggleBtn.disabled = false;
+            statusIndicator.classList.add('on');
+        } else {
+            toggleBtn.textContent = 'Включить';
+            toggleBtn.classList.add('disabled');
+            toggleBtn.disabled = false;
+            statusIndicator.classList.remove('on');
         }
-    } catch (error) {
-        console.error('Error toggling extension:', error);
     }
-});
-
-window.addEventListener('beforeunload', () => {
-    if (subtitlesInterval) {
-        clearInterval(subtitlesInterval);
+    
+    async function loadSubtitles() {
+        try {
+            const response = await chrome.runtime.sendMessage({ action: 'getSubtitles' });
+            displaySubtitles(response?.subtitles || []);
+        } catch (e) {
+            console.error('Error:', e);
+        }
     }
-});
+    
+    function displaySubtitles(subtitles) {
+        if (!subtitles || subtitles.length === 0) {
+            let msg;
+            if (!isMeetTab) {
+                msg = 'Откройте Google Meet';
+            } else if (!isEnabled) {
+                msg = 'Нажмите "Включить" для начала';
+            } else {
+                msg = 'Ожидание субтитров...';
+            }
+            subtitlesContent.innerHTML = `<div class="no-subtitles">${msg}</div>`;
+            return;
+        }
+        
+        const html = subtitles.map(s => {
+            const time = new Date(s.timestamp).toLocaleTimeString();
+            return `<div class="subtitle-item">
+                <div class="subtitle-time">${time}</div>
+                <div class="subtitle-text">${escapeHtml(s.text)}</div>
+            </div>`;
+        }).join('');
+        
+        subtitlesContent.innerHTML = html;
+    }
+    
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    
+    async function toggle() {
+        if (!isMeetTab) return;
+        
+        toggleBtn.disabled = true;
+        toggleBtn.textContent = '...';
+        
+        try {
+            const response = await chrome.runtime.sendMessage({ action: 'toggleExtension' });
+            if (response && response.status !== 'error') {
+                isEnabled = response.status === 'enabled';
+            }
+        } catch (e) {
+            console.error('Error:', e);
+        }
+        
+        updateUI();
+        await loadSubtitles();
+    }
+    
+    async function init() {
+        if (!initElements()) return;
+        
+        await getStatus();
+        updateUI();
+        await loadSubtitles();
+        
+        toggleBtn.addEventListener('click', toggle);
+        refreshInterval = setInterval(loadSubtitles, 2000);
+    }
+    
+    document.addEventListener('DOMContentLoaded', init);
+    window.addEventListener('beforeunload', () => {
+        if (refreshInterval) clearInterval(refreshInterval);
+    });
+    
+})();
